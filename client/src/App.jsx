@@ -1,26 +1,23 @@
-import { EthProvider } from "./contexts/EthContext";
-import Intro from "./components/Intro/";
-import Setup from "./components/Setup";
-import Demo from "./components/Demo";
-import Footer from "./components/Footer";
+import { Routes, Route } from "react-router-dom";
+import Home from "./components/home/Home";
+import NewFundraiser from "./components/fundraiser/New";
+import Header from "./components/header/Header";
 import "./App.css";
 
-function App() {
+const App = () => {
   return (
-    <EthProvider>
-      <div id="App" >
-        <div className="container">
-          <Intro />
-          <hr />
-          <Setup />
-          <hr />
-          <Demo />
-          <hr />
-          <Footer />
+    <div className="wrapper">
+      <div className="content">
+        <Header />
+        <div className="container mt-4">
+          <Routes>
+            <Route path="/" exact element={<Home />} />
+            <Route path="/new" element={<NewFundraiser />} />
+          </Routes>
         </div>
       </div>
-    </EthProvider>
+    </div>
   );
-}
+};
 
 export default App;

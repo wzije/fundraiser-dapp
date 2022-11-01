@@ -3,7 +3,7 @@ const { assert } = require("chai");
 let catchRevert = require("../exception").catchRevert;
 const FundraiserContract = artifacts.require("Fundraiser");
 
-contract("Fundraiser", (accounts) => {
+contract("FundraiserWithdraw", (accounts) => {
   let fundraiser;
   const name = "Beli Mobil";
   const url = "belimobil.com";

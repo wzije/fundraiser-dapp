@@ -1,5 +1,3 @@
-const { assert } = require("chai");
-
 let catchRevert = require("../exception").catchRevert;
 const FundraiserContract = artifacts.require("Fundraiser");
 
@@ -10,8 +8,8 @@ contract("Fundraiser", (accounts) => {
   const imageURL = "https://placekitten.com/300/300";
   const description =
     "Ini adalah penggalangan dana untuk pembelian mobil pribadi";
-  const owner = accounts[0];
   const beneficiary = accounts[1];
+  const owner = accounts[0];
 
   describe("Initialization", () => {
     beforeEach(async () => {

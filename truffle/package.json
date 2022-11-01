@@ -5,7 +5,8 @@
   "main": "truffle-config.js",
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3",
-    "@truffle/hdwallet-provider": "^2.0.10"
+    "@truffle/hdwallet-provider": "^2.0.10",
+    "dotenv": "^16.0.3"
   },
   "scripts": {
     "test": "truffle test"
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "chai": "^4.3.6",
-    "ethereum-waffle": "^3.4.4"
+    "ethereum-waffle": "^3.4.4",
+    "truffle-hdwallet-provider": "^1.0.17"
   }
 }

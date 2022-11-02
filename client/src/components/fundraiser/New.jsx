@@ -91,7 +91,7 @@ const New = () => {
           <Form.Control
             onChange={(e) => setBeneficiary(e.target.value)}
             type="text"
-            placeholder="Enter Address"
+            placeholder="Enter Beneficiary"
           />
         </Form.Group>
         {/* <Form.Group className="mb-3" controlId="formCustodian">

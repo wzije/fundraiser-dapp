@@ -1,16 +1,20 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import { Card, Button, ListGroup } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { Card, ListGroup } from "react-bootstrap";
 import FundraiserContract from "../../contracts/Fundraiser.json";
+import currency from "currency.js";
 import Web3 from "web3";
+import cc from "cryptocompare";
+cc.setApiKey(
+  "a9eac19cd945cd5fa59bec5920196b8f812baf6fa7c58c3f7ce7b2e4c6c68253"
+);
 
 const FundraiserCard = (fundraiser) => {
-  // const web3 = new Web3(
-  //   new Web3.providers.HttpProvider("http://localhost:8545")
-  // );
+  const IDR = (value) =>
+    currency(value, { symbol: "Rp ", decimal: ",", separator: "." });
 
-  // const [contract, setContract] = useState(null);
-  // const [accounts, setAccounts] = useState(null);
+  const fundId = fundraiser["fundraiser"];
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageURL, setImageURL] = useState("");
@@ -44,14 +48,18 @@ const FundraiserCard = (fundraiser) => {
       const totalDonations = await contract.methods.totalDonations().call();
       const imageURL = await contract.methods.imageURL().call();
       const url = await contract.methods.url().call();
-      const totalDonors = await contract.methods.myDonationCount().call();
+      // const totalDonors = await contract.methods.myDonationCount().call();
+
+      const exchangeRate = await cc.price("ETH", ["IDR"]);
+      const eth = web3.utils.fromWei(totalDonations, "ether");
+      const idrDonationAmount = IDR(exchangeRate.IDR * eth).format();
 
       setName(name);
       setDescription(description);
       setImageURL(imageURL);
-      setTotalDonations(totalDonations);
+      setTotalDonations(idrDonationAmount);
       setURL(url);
-      setTotalDonor(totalDonors);
+      // setTotalDonor(totalDonors);
     } catch (err) {
       console.log(err);
     }
@@ -66,11 +74,16 @@ const FundraiserCard = (fundraiser) => {
         <Card.Link href={url}>Go Somewhere</Card.Link>
       </Card.Body>
       <ListGroup className="list-group-flush">
-        <ListGroup.Item>Total Donation: $ {totalDonations} </ListGroup.Item>
-        <ListGroup.Item>Total Donor: {totalDonor} </ListGroup.Item>
+        <ListGroup.Item>Total Donation: {totalDonations} </ListGroup.Item>
+        {/* <ListGroup.Item>Total Donor: {totalDonor} </ListGroup.Item> */}
       </ListGroup>
       <Card.Body>
-        <Button variant="primary">Go somewhere</Button>
+        <Link
+          to={`/funds/${fundId}`}
+          className="btn btn-success text-white p-2"
+        >
+          Detail
+        </Link>
       </Card.Body>
     </Card>
   );

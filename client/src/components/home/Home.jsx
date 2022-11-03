@@ -40,8 +40,10 @@ const Home = () => {
   }, []);
 
   const displayFundraisers = () => {
-    return funds.map((fundraiser) => {
-      return <FundraiserCard fundraiser={fundraiser} key={fundraiser} />;
+    return funds.map((fundraiser, index) => {
+      return (
+        <FundraiserCard fundraiser={{ fundraiser, index }} key={fundraiser} />
+      );
     });
   };
 

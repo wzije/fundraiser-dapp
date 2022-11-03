@@ -19,79 +19,80 @@ const FundraiserDetail = () => {
   const [contract, setContract] = useState(null);
   const [web3, setWeb3] = useState(null);
   const [accounts, setAccounts] = useState(null);
-
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageURL, setImageURL] = useState("");
   const [url, setURL] = useState("");
   const [totalDonations, setTotalDonations] = useState(0);
-  const [totalDonor, setTotalDonor] = useState(0);
-
+  const [userDonations, setUserDonations] = useState(0);
   const [donationAmount, setDonationAmount] = useState(0);
   const [exchangeRate, setExchangeRate] = useState(null);
-  const [ethAmount, setEthAmount] = useState(null);
-
-  const init = async () => {
-    try {
-      if (typeof window.ethereum === "undefined") {
-        console.log("MetaMask is not installed!");
-        return;
-      }
-
-      const web3 = new Web3(Web3.givenProvider || "ws://localhost:7545");
-      const { abi } = FundraiserContract;
-      const contract = new web3.eth.Contract(abi, fundId);
-      const accounts = await web3.eth.requestAccounts();
-      setContract(contract);
-      setWeb3(web3);
-      setAccounts(accounts);
-
-      const name = await contract.methods.name().call();
-      const description = await contract.methods.description().call();
-      const imageURL = await contract.methods.imageURL().call();
-      const url = await contract.methods.url().call();
-      const totalDonations = await contract.methods.totalDonations().call();
-      // const totalDonors = await contract.methods
-      //   .myDonations()
-      //   .call({ from: accounts[0] });
-
-      const exchangeRate = await cc.price("ETH", ["IDR"]);
-      setExchangeRate(exchangeRate);
-      // pass in the coin you want to check and the currency
-      const eth = web3.utils.fromWei(totalDonations, "ether");
-      const idrDonationAmount = IDR(exchangeRate.IDR * eth).format();
-
-      const ethAmount = (donationAmount / exchangeRate || 0).toFixed(4);
-      setEthAmount(ethAmount);
-
-      setName(name);
-      setDescription(description);
-      setImageURL(imageURL);
-      setURL(url);
-      setTotalDonations(idrDonationAmount);
-      setTotalDonor(totalDonations / 1000000000000000000);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const [totalDonationInETH, setTotalDonationInETH] = useState(0);
+  const [donationInETH, setDonationInETH] = useState(0);
 
   useEffect(() => {
-    init();
-  }, []);
+    const init = async (fundId, donationAmount) => {
+      try {
+        if (typeof window.ethereum === "undefined") {
+          console.log("MetaMask is not installed!");
+          return;
+        }
+
+        const web3 = new Web3(Web3.givenProvider || "ws://localhost:7545");
+        const { abi } = FundraiserContract;
+        const contract = new web3.eth.Contract(abi, fundId);
+        const accounts = await web3.eth.requestAccounts();
+        setContract(contract);
+        setWeb3(web3);
+        setAccounts(accounts);
+
+        const name = await contract.methods.name().call();
+        const description = await contract.methods.description().call();
+        const imageURL = await contract.methods.imageURL().call();
+        const url = await contract.methods.url().call();
+        setName(name);
+        setDescription(description);
+        setImageURL(imageURL);
+        setURL(url);
+
+        const totalDonations = await contract.methods.totalDonations().call();
+        const exchangeRate = await cc.price("ETH", ["IDR"]);
+        const totalDonationInETH = web3.utils.fromWei(totalDonations, "ether");
+        const idrDonationAmount = IDR(
+          exchangeRate.IDR * totalDonationInETH
+        ).format();
+
+        const userDonations = await contract.methods
+          .myDonations()
+          .call({ from: accounts[0] });
+
+        console.info(userDonations);
+
+        setExchangeRate(exchangeRate);
+        setTotalDonations(idrDonationAmount);
+        setTotalDonationInETH(totalDonationInETH);
+        setUserDonations(userDonations);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    init(fundId, donationAmount);
+  }, [fundId, donationAmount]);
 
   window.ethereum.on("accountsChanged", function (accounts) {
     window.location.reload();
   });
 
-  const _exchangeDonation = (e) => {
+  const _changeDonationAmount = (e) => {
     e.preventDefault();
     const value = e.target.value;
     setDonationAmount(value);
 
     const ethRate = exchangeRate.IDR;
     const ethTotal = value / ethRate;
-    console.info(value, ethRate, ethTotal, "total");
-    setEthAmount(ethTotal);
+    console.info(value, ethRate, "rate today", ethTotal, "total");
+    setDonationInETH(ethTotal);
   };
 
   const _handleSubmit = async (e) => {
@@ -125,12 +126,14 @@ const FundraiserDetail = () => {
             <figure className="mb-4">
               <img
                 className="img-fluid rounded"
-                src={`${imageURL}/300`}
+                src={`${imageURL}/700/300`}
                 alt="..."
               />
             </figure>
             <section className="mb-5">
-              <p className="fs-5 mb-4">{description}</p>
+              <p className="fs-5 mb-4" style={{ textAlign: "justify" }}>
+                {description}
+              </p>
               <p>
                 More Info:
                 <br />
@@ -156,8 +159,10 @@ const FundraiserDetail = () => {
                 height: "65px",
               }}
             >
-              <div className="fdetail-title">Donor:</div>
-              <p className="text-center fdetail-value">{totalDonor} ETH</p>
+              <div className="fdetail-title">ETH:</div>
+              <p className="text-center fdetail-value">
+                {totalDonationInETH} ETH
+              </p>
             </div>
           </div>
           <div className="mb-4">
@@ -165,12 +170,12 @@ const FundraiserDetail = () => {
               <Form.Group className="mb-3">
                 <Form.Control
                   className="text-center"
-                  onChange={_exchangeDonation}
+                  onChange={_changeDonationAmount}
                   value={donationAmount}
                   type="number"
                   placeholder="0.00"
                 />
-                <Form.Text>Eth: {ethAmount}</Form.Text>
+                <Form.Text>Eth: {donationInETH}</Form.Text>
               </Form.Group>
               <div className="d-grid gap-2">
                 <Button type="submit" variant="warning" size="lg">

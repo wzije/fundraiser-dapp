@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import FundraiserCard from "../fundraiser/Card";
 import Web3 from "web3";
-import { Routes, Route } from "react-router-dom";
 import factoryContract from "../../contracts/FundraiserFactory.json";
-import NewFundraiser from "./New";
-import DetailFundraiser from "./Detail";
 const FundraiserIndex = () => {
   const [funds, setFunds] = useState([]);
 
@@ -33,8 +30,10 @@ const FundraiserIndex = () => {
   }, []);
 
   const displayFundraisers = () => {
-    return funds.map((fundraiser) => {
-      return <FundraiserCard fundraiser={fundraiser} key={fundraiser} />;
+    return funds.map((fundraiser, index) => {
+      return (
+        <FundraiserCard fundraiser={{ fundraiser, index }} key={fundraiser} />
+      );
     });
   };
 

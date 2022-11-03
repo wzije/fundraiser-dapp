@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, ListGroup, Badge } from "react-bootstrap";
 import Web3 from "web3";
 import FundraiserContract from "../../contracts/Fundraiser.json";
 import cc from "cryptocompare";
 import "./Style.css";
 import currency from "currency.js";
+import moment from "moment";
 
 const FundraiserDetail = () => {
   cc.setApiKey(
@@ -29,6 +30,7 @@ const FundraiserDetail = () => {
   const [exchangeRate, setExchangeRate] = useState(null);
   const [totalDonationInETH, setTotalDonationInETH] = useState(0);
   const [donationInETH, setDonationInETH] = useState(0);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     const init = async (fundId, donationAmount) => {
@@ -66,7 +68,11 @@ const FundraiserDetail = () => {
           .myDonations()
           .call({ from: accounts[0] });
 
-        console.info(userDonations);
+        const owner = await contract.methods.owner().call();
+        if (owner !== undefined && owner === accounts[0]) setIsOwner(true);
+
+        const balance = await web3.eth.getBalance(fundId);
+        console.info(parseInt(balance), "current contract balance");
 
         setExchangeRate(exchangeRate);
         setTotalDonations(idrDonationAmount);
@@ -108,7 +114,54 @@ const FundraiserDetail = () => {
       gas: 650000,
     });
 
+    alert("thank you for donation.");
     window.location.reload();
+  };
+
+  const _renderMyDonations = () => {
+    let donations = userDonations;
+    if (donations === 0) return null;
+
+    const donationCount = donations.values.length;
+    const donationList = [];
+
+    for (let i = 0; i < donationCount; i++) {
+      const ethAmount = web3.utils.fromWei(donations.values[i]);
+      const donationUser = exchangeRate.IDR * ethAmount;
+      const donationDate = donations.dates[i];
+
+      donationList.push({
+        amount: donationUser,
+        date: donationDate,
+      });
+    }
+
+    // console.info(donationList);
+
+    return donationList.map((donation, index) => {
+      return (
+        <ListGroup.Item
+          as="li"
+          className="d-flex justify-content-between align-items-start"
+          key={index}
+        >
+          <div className="ms-1 me-auto">
+            <div className="fw-bold"></div>
+            {IDR(donation.amount).format()}
+          </div>
+          <Badge bg="secondary" style={{ fontSize: "8pt" }}>
+            at {moment.unix(donation.date).format("DD/M/Y")}
+          </Badge>
+        </ListGroup.Item>
+      );
+    });
+  };
+
+  const _handleWithdraw = async () => {
+    if (isOwner) {
+      await contract.methods.withdraw().send({ from: accounts[0] });
+      alert("fund withdraw");
+    }
   };
 
   return (
@@ -184,15 +237,28 @@ const FundraiserDetail = () => {
               </div>
             </Form>
           </div>
+
           <div className="mb-4">
-            <Form onSubmit={_handleSubmit}>
+            <ListGroup>
+              <ListGroup.Item active>My Donation Receipt</ListGroup.Item>
+              {_renderMyDonations()}
+            </ListGroup>
+          </div>
+
+          {isOwner && (
+            <div className="mb-4">
               <div className="d-grid gap-2">
-                <Button type="submit" variant="success" size="lg">
+                <Button
+                  type="button"
+                  onClick={_handleWithdraw}
+                  variant="success"
+                  size="lg"
+                >
                   Withdraw
                 </Button>
               </div>
-            </Form>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
